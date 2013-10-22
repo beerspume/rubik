@@ -38,13 +38,17 @@ typedef struct Slot{
 	Block* block;
 }Slot;
 
+void getPositionChar(char position_name[5],BLOCK_POSITION position);
+void findEdgeBlock(Slot* ret[4],BLOCK_COLOR color,Slot cube[3][3][3]);
+BLOCK_COLOR getDirectionColor(BLOCK_DIRECTION direction,Slot cube[3][3][3]);
+void restore(Slot cube[3][3][3]);
 char getActionChar(int keynum);
 void chaos(Slot cube[3][3][3]);
 void printCube(Slot cube[3][3][3]);
 void rotate(char key,int ccw,Slot cube[3][3][3]);
 void rotateBlock(char key,int ccw,Block* block);
 char getDirectionChar(BLOCK_DIRECTION direction);
-void getColorChar(char color_name[100],BLOCK_COLOR color);
+void getColorChar(char color_name[10],BLOCK_COLOR color);
 void getFace(int color[3][3],int color_direction,Slot cube[3][3][3]);
 void main(void){
 	Slot cube[3][3][3]={
@@ -235,15 +239,78 @@ void main(void){
 		}		
 	}
 
-	// printCube(cube);
 
-	chaos(cube);
+	printf("----------↓↓↓ initialized cube ↓↓↓----------\n");
+	// printCube(cube);//init cube status
 
-	printCube(cube);
+	chaos(cube);//chaos cube
+	printf("----------↓↓↓ chaotic cube ↓↓↓----------\n");
+	printCube(cube);//print chaotic cube
 
-	char* text="rubik's cube";
-	printf("%s\n",text);
+	restore(cube);//restore cube
+	printf("----------↓↓↓ restored cube ↓↓↓----------\n");
+	// printCube(cube);//print restored cube
 
+	printf("----------☆☆☆ rubik's cube ☆☆☆----------\n");
+
+}
+void restore(Slot cube[3][3][3]){
+	BLOCK_COLOR c1=getDirectionColor(U,cube);
+	Slot* edges[4];
+	findEdgeBlock(edges,c1,cube);
+	char position_name[5];
+	for(int i=0;i<4;i++){
+		getPositionChar(position_name,edges[i]->position);
+		printf("%s\n",position_name);
+	}
+
+	char color_name[10];
+	getColorChar(color_name,c1);
+	printf("%s\n",color_name);
+}
+
+
+void findEdgeBlock(Slot* ret[4],BLOCK_COLOR color,Slot cube[3][3][3]){
+	int count=0;
+	for(int i=0;i<3;i++){
+		for(int j=0;j<3;j++){
+			for(int k=0;k<3;k++){
+				if(cube[i][j][k].block->type==EDGE){
+					for(int l=0;l<3;l++){
+						if(cube[i][j][k].block->color[l]==color){
+							ret[count]=&cube[i][j][k];
+							count++;
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+BLOCK_COLOR getDirectionColor(BLOCK_DIRECTION direction,Slot cube[3][3][3]){
+	BLOCK_COLOR ret=NONE;
+	switch(direction){
+		case U:
+			ret=cube[0][1][1].block->color[0];
+			break;
+		case D:
+			ret=cube[2][1][1].block->color[0];
+			break;
+		case L:
+			ret=cube[1][0][1].block->color[0];
+			break;
+		case R:
+			ret=cube[1][2][1].block->color[0];
+			break;
+		case B:
+			ret=cube[1][1][0].block->color[0];
+			break;
+		case F:
+			ret=cube[1][1][2].block->color[0];
+			break;
+	}
+	return ret;
 }
 void chaos(Slot cube[3][3][3]){
 	struct timeval tv;
@@ -252,13 +319,19 @@ void chaos(Slot cube[3][3][3]){
 	int r;
 	int key;
 	int cww;
+	int lastkey=-1;
 	for(int i=0;i<50;i++){
 		r=rand();
 		key=getActionChar(r%6);
 		r=rand();
 		cww=r%2;
+		if(lastkey==key){
+			i--;
+			continue;
+		}
 		rotate(key,cww,cube);
-		printf("key=%c:cww=%d\n",key,cww); 
+		lastkey=key;
+		// printf("key=%c:cww=%d\n",key,cww); 
 	};
 }
 char getActionChar(int keynum){
@@ -293,15 +366,102 @@ void printCube(Slot cube[3][3][3]){
 		getFace(colors,c,cube);
 		for(int i=0;i<3;i++){
 			for(int j=0;j<3;j++){
-				char color_name[100]="aaaaa";
+				char color_name[10];
 				getColorChar(color_name,colors[i][j]);
-				printf("[%d][%d]=%s\n",i,j,color_name);
+				printf("Slot[%d][%d]=%s\n",i,j,color_name);
 			}
 		}
 		printf("\n");
 	}
 }
-void getColorChar(char color_name[100],BLOCK_COLOR color){
+void getPositionChar(char position_name[5],BLOCK_POSITION position){
+	strcpy(position_name,"Unknow");
+	switch(position){
+		case MC:
+			strcpy(position_name,"MC");
+			break;
+		case UC:
+			strcpy(position_name,"UC");
+			break;
+		case UL:
+			strcpy(position_name,"UL");
+			break;
+		case UR:
+			strcpy(position_name,"UR");
+			break;
+		case UF:
+			strcpy(position_name,"UF");
+			break;
+		case UB:
+			strcpy(position_name,"UB");
+			break;
+		case ULF:
+			strcpy(position_name,"ULF");
+			break;
+		case ULB:
+			strcpy(position_name,"ULB");
+			break;
+		case URF:
+			strcpy(position_name,"URF");
+			break;
+		case URB:
+			strcpy(position_name,"URB");
+			break;
+		case ML:
+			strcpy(position_name,"ML");
+			break;
+		case MR:
+			strcpy(position_name,"MR");
+			break;
+		case MF:
+			strcpy(position_name,"MF");
+			break;
+		case MB:
+			strcpy(position_name,"MB");
+			break;
+		case MLF:
+			strcpy(position_name,"MLF");
+			break;
+		case MLB:
+			strcpy(position_name,"MLB");
+			break;
+		case MRF:
+			strcpy(position_name,"MRF");
+			break;
+		case MRB:
+			strcpy(position_name,"MRB");
+			break;
+		case DC:
+			strcpy(position_name,"DC");
+			break;
+		case DL:
+			strcpy(position_name,"DL");
+			break;
+		case DR:
+			strcpy(position_name,"DR");
+			break;
+		case DF:
+			strcpy(position_name,"DF");
+			break;
+		case DB:
+			strcpy(position_name,"DB");
+			break;
+		case DLF:
+			strcpy(position_name,"DLF");
+			break;
+		case DLB:
+			strcpy(position_name,"DLB");
+			break;
+		case DRF:
+			strcpy(position_name,"DRF");
+			break;
+		case DRB:
+			strcpy(position_name,"DRB");
+			break;
+	}
+
+}
+void getColorChar(char color_name[10],BLOCK_COLOR color){
 	strcpy(color_name,"Unknow");
 	switch(color){
 		case BLUE:
